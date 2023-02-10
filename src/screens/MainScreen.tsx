@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {StackScreenProps} from '@react-navigation/stack';
 import {StyleSheet, View} from 'react-native';
 
@@ -21,14 +21,14 @@ interface Props extends StackScreenProps<RootStackParams, 'Main'> {}
 export default function MainScreen(_: Props) {
   const [deviceProps, setDeviceProps] = useState({
     on: false,
-    speed: 0,
-    direction: 'clock',
+    direction: 'r',
   });
+  const [speedState, setSpeed] = useState(0);
   const {currentDevice, disconnectDevice, sendData} = useBluetooth();
 
   const navigation = useNavigation();
 
-  const handleToggleOn = () => {
+  const handleToggleOn = useCallback(() => {
     if (!currentDevice) {
       return;
     }
@@ -41,20 +41,21 @@ export default function MainScreen(_: Props) {
 
     sendData(currentDevice?.id, msg);
     setDeviceProps({...deviceProps, on: !deviceProps.on});
-  };
+  }, [currentDevice, deviceProps, sendData]);
 
   const handleChangeSpeed = (speed: number) => {
     if (!currentDevice) return;
 
     const msgSpeed = String(speed / 20);
 
+    setSpeed(speed);
     sendData(currentDevice?.id, msgSpeed);
-    setDeviceProps({...deviceProps, speed});
   };
 
   const handleChangeDirection = (value: string) => {
     if (!currentDevice) return;
 
+    setDeviceProps({...deviceProps, direction: value});
     sendData(currentDevice?.id, value);
   };
 
@@ -78,12 +79,14 @@ export default function MainScreen(_: Props) {
         Dispositivo conectado: {currentDevice?.name}
       </StyledText>
       <SwitchTurnOn on={deviceProps.on} onChange={handleToggleOn} />
-      <CarControls onChange={handleChangeDirection} />
-      <SliderSpeed
-        speed={deviceProps.speed}
-        step={20}
-        onChangeSpeed={handleChangeSpeed}
-      />
+      {deviceProps.on && <CarControls onChange={handleChangeDirection} />}
+      {deviceProps.on && (
+        <SliderSpeed
+          speed={speedState}
+          step={20}
+          onChangeSpeed={handleChangeSpeed}
+        />
+      )}
     </View>
   );
 }

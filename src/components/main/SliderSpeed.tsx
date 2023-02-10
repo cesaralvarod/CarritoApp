@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Slider} from 'react-native-elements';
 import StyledText from '../general/StyledText';
@@ -18,11 +18,13 @@ export default function SliderSpeed({
   step = 10,
   onChangeSpeed,
 }: Props) {
+  const handleChange = (value: number) => onChangeSpeed(value);
+
   return (
     <View style={styles.container}>
       <Slider
         value={speed}
-        onValueChange={value => onChangeSpeed(value)}
+        onValueChange={handleChange}
         maximumValue={maxSpeed}
         minimumValue={minSpeed}
         step={step}

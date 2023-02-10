@@ -10,7 +10,7 @@ CONEXIONES PIN
 
 // Motor
 const int PIN_MOTOR_ON = 6; // turn on | turn off
-const int PIN_AN_MOTOR_SPEED = 3; // Speed
+const int PIN_MOTOR_SPEED = 11; // Speed
 
 const int PIN_MOTOR_DIR1 = 9; // Direction
 const int PIN_MOTOR_DIR2 = 10; // Direction
@@ -34,9 +34,6 @@ char PASSWORD[10] = "12345678";
 char BAUD = 4;
 
 void turnon_motor() {
-    // Set direction motor
-    set_direction('r');
-
     // Turn on motor
     digitalWrite(PIN_MOTOR_ON, HIGH);
     motor_on = true;
@@ -52,9 +49,10 @@ void turnoff_motor() {
 
 void set_speed(String speed) {
     if(motor_on) {
-        speed_motor = speed.toInt() * 51; // 0 -> 255
+        speed_motor = speed.toInt() * 50; // 0 -> 255
         Serial.println(speed_motor);
-        analogWrite(PIN_AN_MOTOR_SPEED, speed_motor);
+        analogWrite(PIN_MOTOR_SPEED, speed_motor);
+        delayMicroseconds(1000);
     }
 }
 
@@ -82,6 +80,7 @@ void setup() {
 
     // define motor pins
     pinMode(PIN_MOTOR_ON, OUTPUT);
+    pinMode(PIN_MOTOR_SPEED, OUTPUT);
     pinMode(PIN_MOTOR_DIR1, OUTPUT);
     pinMode(PIN_MOTOR_DIR2, OUTPUT);
 
