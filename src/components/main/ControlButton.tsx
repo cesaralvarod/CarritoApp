@@ -4,12 +4,16 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 
 interface Props {
   icon: string;
+  onPress: () => Promise<void> | any;
 }
 
-export default function ControlButton({icon}: Props) {
+export default function ControlButton({icon, onPress}: Props) {
   return (
-    <TouchableOpacity activeOpacity={0.5} style={styles.container}>
-      <Icon name={icon} size={50} />
+    <TouchableOpacity
+      activeOpacity={0.5}
+      style={styles.container}
+      onPress={onPress}>
+      <Icon name={icon} size={100} />
     </TouchableOpacity>
   );
 }

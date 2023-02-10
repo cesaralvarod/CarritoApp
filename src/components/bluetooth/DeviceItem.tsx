@@ -25,8 +25,6 @@ export default function DeviceItem({name, id, connect}: Props) {
 
     const connected = await connect(id);
 
-    console.log(connected);
-
     if (connected) {
       navigation.navigate('Main', {id, name});
     }

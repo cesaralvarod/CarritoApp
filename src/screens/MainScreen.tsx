@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StackScreenProps} from '@react-navigation/stack';
 import {StyleSheet, View} from 'react-native';
 
@@ -14,30 +14,76 @@ import {useBluetooth} from '../hooks/useBluetooth';
 import {themeApp} from '../themes/themeApp';
 
 import {RootStackParams} from '../navigator/Navigator';
+import {useNavigation} from '@react-navigation/native';
 
 interface Props extends StackScreenProps<RootStackParams, 'Main'> {}
 
 export default function MainScreen(_: Props) {
-  const {currentDevice, disconnectDevice} = useBluetooth();
+  const [deviceProps, setDeviceProps] = useState({
+    on: false,
+    speed: 0,
+    direction: 'clock',
+  });
+  const {currentDevice, disconnectDevice, sendData} = useBluetooth();
 
-  // NOTE: Set currentDevice to null when we exit this screen
+  const navigation = useNavigation();
+
+  const handleToggleOn = () => {
+    if (!currentDevice) {
+      return;
+    }
+
+    let msg = 'e';
+
+    if (deviceProps.on) {
+      msg = 'a';
+    }
+
+    sendData(currentDevice?.id, msg);
+    setDeviceProps({...deviceProps, on: !deviceProps.on});
+  };
+
+  const handleChangeSpeed = (speed: number) => {
+    if (!currentDevice) return;
+
+    const msgSpeed = String(speed / 20);
+
+    sendData(currentDevice?.id, msgSpeed);
+    setDeviceProps({...deviceProps, speed});
+  };
+
+  const handleChangeDirection = (value: string) => {
+    if (!currentDevice) return;
+
+    sendData(currentDevice?.id, value);
+  };
+
   useEffect(() => {
     return () => {
-      const disconnect = async () =>
+      const disconnect = async () => {
         await disconnectDevice(currentDevice?.id || '');
+        navigation.navigate('Bluetooth' as never);
+      };
 
+      sendData(currentDevice?.id, '0'); // Turn off motor
       disconnect();
     };
   }, []);
+
+  if (!currentDevice) return null;
 
   return (
     <View style={styles.container}>
       <StyledText style={styles.textDevice}>
         Dispositivo conectado: {currentDevice?.name}
       </StyledText>
-      <SwitchTurnOn />
-      <CarControls />
-      <SliderSpeed />
+      <SwitchTurnOn on={deviceProps.on} onChange={handleToggleOn} />
+      <CarControls onChange={handleChangeDirection} />
+      <SliderSpeed
+        speed={deviceProps.speed}
+        step={20}
+        onChangeSpeed={handleChangeSpeed}
+      />
     </View>
   );
 }

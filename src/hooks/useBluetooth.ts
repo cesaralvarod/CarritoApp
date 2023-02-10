@@ -8,8 +8,6 @@ export const useBluetooth = () => {
   const {devices, isEnable, currentDevice} = bluetooth;
   const {setEnable, setListDevices, setDevice} = actions;
 
-  // NOTE: Ver como trabajar un arduino y como enviar informacion, se puede usar un BluetoothContext o sino se puede hacer una funcion en este hook para leer y enviar informacion al dispositivo conectado. Ver que manera funciona mejor.
-
   const enableBluetooth = async () => {
     try {
       const bluetoothEnabled = await BluetoothSerial.requestEnable();
@@ -152,8 +150,31 @@ export const useBluetooth = () => {
     }
   };
 
-  const sendData = async (id: string) => {
-    console.log(id);
+  const sendData = async (id: string | undefined, msg: any) => {
+    try {
+      await BluetoothSerial.device(id).write(msg);
+    } catch (error) {
+      Alert.alert(
+        'Error!',
+        'Ocurrió un error al enviar datos al dispositivo Bluetooth.',
+      );
+      console.log(error);
+    }
+  };
+
+  const getData = async (id: string) => {
+    try {
+      const data = await BluetoothSerial.readFromDevice(id);
+
+      return data;
+      // Alert.alert('Excelente!', 'Se envió la data');
+    } catch (error) {
+      Alert.alert(
+        'Error!',
+        'Ocurrió un error al enviar datos al dispositivo Bluetooth.',
+      );
+      console.log(error);
+    }
   };
 
   return {
@@ -168,5 +189,6 @@ export const useBluetooth = () => {
     connectDevice,
     disconnectDevice,
     sendData,
+    getData,
   };
 };

@@ -3,22 +3,34 @@ import {StyleSheet, View} from 'react-native';
 import {Slider} from 'react-native-elements';
 import StyledText from '../general/StyledText';
 
-export default function SliderSpeed() {
-  const [value, setValue] = useState(100);
+interface Props {
+  speed: number;
+  maxSpeed?: number;
+  minSpeed?: number;
+  step?: number;
+  onChangeSpeed: (value: number) => Promise<void> | any;
+}
 
+export default function SliderSpeed({
+  speed,
+  maxSpeed = 100,
+  minSpeed = 0,
+  step = 10,
+  onChangeSpeed,
+}: Props) {
   return (
     <View style={styles.container}>
       <Slider
-        value={value}
-        onValueChange={val => setValue(val)}
-        maximumValue={100}
-        minimumValue={0}
-        step={10}
+        value={speed}
+        onValueChange={value => onChangeSpeed(value)}
+        maximumValue={maxSpeed}
+        minimumValue={minSpeed}
+        step={step}
         trackStyle={styles.track}
         thumbStyle={styles.thumb}
         animateTransitions={true}
       />
-      <StyledText>Velocidad: {value}%</StyledText>
+      <StyledText>Velocidad: {speed / 20}</StyledText>
     </View>
   );
 }
