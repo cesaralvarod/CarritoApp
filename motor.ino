@@ -1,88 +1,93 @@
 #include <SoftwareSerial.h>
 
+// PINES
 /*
-BLUETOOTH MODULE
-CONEXIONES PIN
+---------------------------------------------------
+PIN | TYPE     | DESCRIPTION
+---------------------------------------------------
+ 6  | digital  | Turn on / Turn off motor
+ 11 | analogic | Set speed motor
+ 9  | digital  | L295N control
+ 10 | digital  | L295N control
+ 2  | digital  | Reception pin HC-06 Bluetooth
+ 3  | digital  | Reception pin HC-06 Bluetooth
+---------------------------------------------------
 
 */
-
-// PINES
 
 // Motor
 const int PIN_MOTOR_ON = 6; // turn on | turn off
 const int PIN_MOTOR_SPEED = 11; // Speed
 
-const int PIN_MOTOR_DIR1 = 9; // Direction
-const int PIN_MOTOR_DIR2 = 10; // Direction
+const int PIN_MOTOR_IN1 = 9; // Sense
+const int PIN_MOTOR_IN2 = 10; // Sense
 
 // Bluetooth
-const byte rxPin = 2; // Reception
-const byte txPin = 3; // Transmition
+const byte PIN_RECEPTION_HC06 = 2; // Reception
+const byte PIN_TRANSMITION_HC06 = 3; // Transmition
 
 // State motor
 boolean motor_on = false;
 char dir_motor = 'r'; // right (r) or left(l)
-int speed_motor = 0; // 0 -> 5
+int speed_motor = 0; // 0 -> 255
 
 String blt_command = "";
 
 // SoftwareSerial object
-SoftwareSerial bluetooth(rxPin, txPin);
+SoftwareSerial bluetooth(PIN_RECEPTION_HC06, PIN_TRANSMITION_HC06);
 
-char NAME[10] = "BLT_BTMC";
-char PASSWORD[10] = "12345678";
-char BAUD = 4;
+//char NAME[10] = "BLT_BTMC";
+//char PASSWORD[10] = "12345678";
+//char BAUD = 4;
 
 void turnon_motor() {
     // Turn on motor
     digitalWrite(PIN_MOTOR_ON, HIGH);
     motor_on = true;
-    delayMicroseconds(1000);
+    delay(100);
 }
 
 void turnoff_motor() {
     // Turn off motor
     digitalWrite(PIN_MOTOR_ON, LOW);
     motor_on = false;
-    delayMicroseconds(1000);
+    delay(100);
 }
 
 void set_speed(String speed) {
-    if(motor_on) {
-        speed_motor = speed.toInt() * 50; // 0 -> 255
-        Serial.println(speed_motor);
+    if(motor_on && speed.toInt()>=0 && speed.toInt()<=5) {
+        speed_motor = speed.toInt() * 51; // 0 -> 255
         analogWrite(PIN_MOTOR_SPEED, speed_motor);
-        delayMicroseconds(1000);
+        delay(100);
     }
 }
 
 void set_direction(char dir) {
     switch (dir) {
     case 'r':
-        digitalWrite(PIN_MOTOR_DIR1, HIGH);
-        digitalWrite(PIN_MOTOR_DIR2, LOW);
+        digitalWrite(PIN_MOTOR_IN1, HIGH);
+        digitalWrite(PIN_MOTOR_IN2, LOW);
         dir_motor = 'r';
-        delayMicroseconds(1000);
         break;
     case 'l':
-        digitalWrite(PIN_MOTOR_DIR1, LOW);
-        digitalWrite(PIN_MOTOR_DIR2, HIGH);
+        digitalWrite(PIN_MOTOR_IN1, LOW);
+        digitalWrite(PIN_MOTOR_IN2, HIGH);
         dir_motor = 'l';
-        delayMicroseconds(1000);
         break;
     }
+    delay(1000);
 }
 
 void setup() {
     // define pin modes for TX and RX
-    pinMode(rxPin, INPUT);
-    pinMode(txPin, OUTPUT);
+    pinMode(PIN_RECEPTION_HC06, INPUT);
+    pinMode(PIN_TRANSMITION_HC06, OUTPUT);
 
     // define motor pins
     pinMode(PIN_MOTOR_ON, OUTPUT);
     pinMode(PIN_MOTOR_SPEED, OUTPUT);
-    pinMode(PIN_MOTOR_DIR1, OUTPUT);
-    pinMode(PIN_MOTOR_DIR2, OUTPUT);
+    pinMode(PIN_MOTOR_IN1, OUTPUT);
+    pinMode(PIN_MOTOR_IN2, OUTPUT);
 
     // Set direction motor
     set_direction('r');
@@ -95,22 +100,35 @@ void setup() {
 }
 
 void loop() {
+    if(motor_on) {
+        analogWrite(PIN_MOTOR_SPEED, speed_motor);
+    } else {
+        analogWrite(PIN_MOTOR_SPEED, 0);
+        digitalWrite(PIN_MOTOR_IN1, LOW);
+        digitalWrite(PIN_MOTOR_IN2, LOW);
+    }
+
     if(bluetooth.available()) {
         blt_command = "";
         char c = bluetooth.read();
-        Serial.println(c);
         blt_command = c;
 
-        if(blt_command == "a") {
+        switch (c) {
+        case 'a':
             turnoff_motor();
-        } else if (blt_command == "e") {
+            break;
+        case 'e':
             turnon_motor();
-        } else if(blt_command == "r") {
+            break;
+        case 'r':
             set_direction('r');
-        } else if (blt_command == "l") {
+            break;
+        case 'l':
             set_direction('l');
-        } else if (blt_command == "0" || blt_command=="1" || blt_command =="2"|| blt_command=="3" || blt_command == "4" || blt_command=="5") {
+            break;
+        case '0' || '1' || '2' || '3'|| '4' || '5':
             set_speed(blt_command);
+            break;
         }
     }
 }
