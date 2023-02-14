@@ -1,6 +1,8 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {StackScreenProps} from '@react-navigation/stack';
 import {StyleSheet, View} from 'react-native';
+
+import SplashScreen from 'react-native-splash-screen';
 
 // Components
 import BluetoothList from '../components/bluetooth/BluetoothList';
@@ -13,6 +15,10 @@ import {RootStackParams} from '../navigator/Navigator';
 interface Props extends StackScreenProps<RootStackParams, 'Bluetooth'> {}
 
 export default function BluetoothScreen(_: Props) {
+  useEffect(() => {
+    SplashScreen.hide();
+  }, []);
+
   return (
     <View style={styles.container}>
       <StyledText style={styles.title}>Bluetooth</StyledText>
